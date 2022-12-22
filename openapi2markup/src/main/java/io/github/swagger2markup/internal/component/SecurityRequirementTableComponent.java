@@ -16,6 +16,7 @@
 package io.github.swagger2markup.internal.component;
 
 import io.github.swagger2markup.OpenAPI2MarkupConverter;
+import io.github.swagger2markup.adoc.ast.impl.SectionImpl;
 import io.github.swagger2markup.adoc.ast.impl.TableImpl;
 import io.github.swagger2markup.extension.MarkupComponent;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
@@ -48,28 +49,29 @@ public class SecurityRequirementTableComponent extends MarkupComponent<Structura
 
         if (securityRequirements == null || securityRequirements.isEmpty()) return node;
 
-        TableImpl securityRequirementsTable = new TableImpl(node, new HashMap<>(), new ArrayList<>());
+        SectionImpl section = new SectionImpl(node);
+        if (parameters.addTitle) {
+            section.setTitle(labels.getLabel(TABLE_TITLE_SECURITY));
+        }
+
+        TableImpl securityRequirementsTable = new TableImpl(section, new HashMap<>(), new ArrayList<>());
         securityRequirementsTable.setOption("header");
         securityRequirementsTable.setAttribute("caption", "", true);
-        securityRequirementsTable.setAttribute("cols", ".^3a,.^4a,.^13a", true);
-        if (parameters.addTitle) {
-            securityRequirementsTable.setTitle(labels.getLabel(TABLE_TITLE_SECURITY));
-        }
+        securityRequirementsTable.setAttribute("cols", "1,1", true);
         securityRequirementsTable.setHeaderRow(
-                labels.getLabel(TABLE_HEADER_TYPE),
-                labels.getLabel(TABLE_HEADER_NAME),
-                labels.getLabel(TABLE_HEADER_SCOPES));
+            labels.getLabel(TABLE_HEADER_TYPE),
+            labels.getLabel(TABLE_HEADER_NAME));
 
         securityRequirements.forEach(securityRequirement ->
-                securityRequirement.forEach((name, scopes) ->
-                        securityRequirementsTable.addRow(
-                                generateInnerDoc(securityRequirementsTable, boldUnconstrained(scopes.isEmpty() ? "apiKey" : "oauth2")),
-                                generateInnerDoc(securityRequirementsTable, name),
-                                generateInnerDoc(securityRequirementsTable, String.join(", ", scopes))
-                        )
+            securityRequirement.forEach((name, scopes) ->
+                securityRequirementsTable.addRow(
+                    generateInnerDoc(securityRequirementsTable, boldUnconstrained("oauth2")),
+                    generateInnerDoc(securityRequirementsTable, "<<_" + name.toLowerCase() + ", " + name + ">>")
                 )
+            )
         );
-        node.append(securityRequirementsTable);
+        section.append(securityRequirementsTable);
+        node.append(section);
         return node;
     }
 

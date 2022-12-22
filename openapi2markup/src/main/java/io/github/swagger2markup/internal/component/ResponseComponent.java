@@ -15,21 +15,28 @@
  */
 package io.github.swagger2markup.internal.component;
 
-import io.github.swagger2markup.OpenAPI2MarkupConverter;
-import io.github.swagger2markup.adoc.ast.impl.TableImpl;
-import io.github.swagger2markup.extension.MarkupComponent;
-import io.swagger.v3.oas.models.responses.ApiResponse;
-import org.asciidoctor.ast.Document;
-import org.asciidoctor.ast.StructuralNode;
-import org.asciidoctor.ast.Table;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static io.github.swagger2markup.config.OpenAPILabels.*;
+import org.asciidoctor.ast.Document;
+import org.asciidoctor.ast.StructuralNode;
+import org.asciidoctor.ast.Table;
+
+import io.github.swagger2markup.OpenAPI2MarkupConverter;
+import io.github.swagger2markup.adoc.ast.impl.SectionImpl;
+import io.github.swagger2markup.adoc.ast.impl.TableImpl;
+import io.github.swagger2markup.extension.MarkupComponent;
+import io.swagger.v3.oas.models.responses.ApiResponse;
+
+import static io.github.swagger2markup.config.OpenAPILabels.TABLE_HEADER_DESCRIPTION;
+import static io.github.swagger2markup.config.OpenAPILabels.TABLE_HEADER_HTTP_CODE;
+import static io.github.swagger2markup.config.OpenAPILabels.TABLE_HEADER_SCHEMA;
+import static io.github.swagger2markup.config.OpenAPILabels.TABLE_TITLE_RESPONSES;
 import static io.github.swagger2markup.internal.helper.OpenApiHelpers.generateInnerDoc;
+import static io.github.swagger2markup.internal.helper.OpenApiHelpers.getSchemaTypeAsString;
 
 public class ResponseComponent extends MarkupComponent<StructuralNode, ResponseComponent.Parameters, StructuralNode> {
 
@@ -58,30 +65,37 @@ public class ResponseComponent extends MarkupComponent<StructuralNode, ResponseC
 
         if (null == apiResponses || apiResponses.isEmpty()) return serverSection;
 
+        SectionImpl responseSection = new SectionImpl(serverSection);
+        responseSection.setTitle(labels.getLabel(TABLE_TITLE_RESPONSES));
+
         TableImpl pathResponsesTable = new TableImpl(serverSection, new HashMap<>(), new ArrayList<>());
         pathResponsesTable.setOption("header");
         pathResponsesTable.setAttribute("caption", "", true);
         pathResponsesTable.setAttribute("cols", ".^2a,.^14a,.^4a", true);
-        pathResponsesTable.setTitle(labels.getLabel(TABLE_TITLE_RESPONSES));
         pathResponsesTable.setHeaderRow(
-                labels.getLabel(TABLE_HEADER_HTTP_CODE),
-                labels.getLabel(TABLE_HEADER_DESCRIPTION),
-                labels.getLabel(TABLE_HEADER_LINKS));
+            labels.getLabel(TABLE_HEADER_HTTP_CODE),
+            labels.getLabel(TABLE_HEADER_DESCRIPTION),
+            labels.getLabel(TABLE_HEADER_SCHEMA));
 
-        apiResponses.forEach((httpCode, apiResponse) ->
-                pathResponsesTable.addRow(
-                        generateInnerDoc(pathResponsesTable, httpCode),
-                        getResponseDescriptionColumnDocument(pathResponsesTable, apiResponse),
-                        linkComponent.apply(pathResponsesTable, apiResponse.getLinks())
-                ));
-        serverSection.append(pathResponsesTable);
+        apiResponses.forEach((httpCode, apiResponse) -> {
+            String schema = "No Content";
+            if (apiResponse.getContent() != null) {
+                schema = apiResponse.getContent().values().stream().map(mediaType -> mediaType.getSchema() != null ? getSchemaTypeAsString(mediaType.getSchema()) : "").collect(Collectors.joining());
+            }
+            pathResponsesTable.addRow(
+                generateInnerDoc(pathResponsesTable, httpCode),
+                getResponseDescriptionColumnDocument(pathResponsesTable, apiResponse),
+                generateInnerDoc(pathResponsesTable, schema)
+            );
+        });
+        responseSection.append(pathResponsesTable);
+        serverSection.append(responseSection);
         return serverSection;
     }
 
     private Document getResponseDescriptionColumnDocument(Table table, ApiResponse apiResponse) {
         Document document = generateInnerDoc(table, Optional.ofNullable(apiResponse.getDescription()).orElse(""));
         headersComponent.apply(document, apiResponse.getHeaders());
-        mediaContentComponent.apply(document, apiResponse.getContent());
         return document;
     }
 

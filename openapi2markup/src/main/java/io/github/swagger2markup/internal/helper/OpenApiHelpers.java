@@ -2,6 +2,7 @@ package io.github.swagger2markup.internal.helper;
 
 import io.github.swagger2markup.adoc.ast.impl.DocumentImpl;
 import io.github.swagger2markup.adoc.ast.impl.ParagraphBlockImpl;
+import io.github.swagger2markup.adoc.ast.impl.SectionImpl;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +16,15 @@ import java.util.List;
 import static io.github.swagger2markup.adoc.converter.internal.Delimiters.LINE_SEPARATOR;
 
 public class OpenApiHelpers {
+
+    public static void appendDescriptionSection(StructuralNode node, String title, String description) {
+        if (StringUtils.isNotBlank(description)) {
+            SectionImpl section = new SectionImpl(node);
+            section.setTitle(title);
+            appendDescription(section, description);
+            node.append(section);
+        }
+    }
 
     public static void appendDescription(StructuralNode node, String description) {
         if (StringUtils.isNotBlank(description)) {

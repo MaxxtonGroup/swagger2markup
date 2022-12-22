@@ -149,7 +149,7 @@ public class OpenAPI2MarkupConverter extends AbstractSchema2MarkupConverter<Open
         OpenAPI openAPI;
         try {
             //TODO
-            openAPI = new OpenAPIV3Parser().read(IOUtils.toString(schemaReader));
+            openAPI = new OpenAPIV3Parser().readContents(IOUtils.toString(schemaReader)).getOpenAPI();
         } catch (IOException e) {
             throw new RuntimeException("Swagger source can not be parsed", e);
         }
@@ -193,33 +193,33 @@ public class OpenAPI2MarkupConverter extends AbstractSchema2MarkupConverter<Open
     @Override
     public String toString() {
         return applyOverviewDocument().convert() +
-                applyPathsDocument().convert() +
-                applyComponentsDocument().convert() +
-                applySecurityDocument().convert();
+            applyPathsDocument().convert() +
+            applyComponentsDocument().convert() +
+            applySecurityDocument().convert();
     }
 
     private Document applyOverviewDocument() {
         return overviewDocument.apply(
-                openAPIContext.createDocument(),
-                OverviewDocument.parameters(openAPIContext.getSchema()));
+            openAPIContext.createDocument(),
+            OverviewDocument.parameters(openAPIContext.getSchema()));
     }
 
     private Document applyPathsDocument() {
         return pathsDocument.apply(
-                openAPIContext.createDocument(),
-                PathsDocument.parameters(openAPIContext.getSchema()));
+            openAPIContext.createDocument(),
+            PathsDocument.parameters(openAPIContext.getSchema()));
     }
 
     private Document applyComponentsDocument() {
         return componentsDocument.apply(
-                openAPIContext.createDocument(),
-                ComponentsDocument.parameters(openAPIContext.getSchema().getComponents()));
+            openAPIContext.createDocument(),
+            ComponentsDocument.parameters(openAPIContext.getSchema().getComponents()));
     }
 
     private Document applySecurityDocument() {
         return securityDocument.apply(
-                openAPIContext.createDocument(),
-                SecurityDocument.parameters(openAPIContext.getSchema()));
+            openAPIContext.createDocument(),
+            SecurityDocument.parameters(openAPIContext.getSchema()));
     }
 
     private void writeToFile(Document document, Path path) {
@@ -259,8 +259,8 @@ public class OpenAPI2MarkupConverter extends AbstractSchema2MarkupConverter<Open
         private OpenAPI2MarkupExtensionRegistry extensionRegistry;
 
         public OpenAPIContext(OpenSchema2MarkupConfig config,
-                              OpenAPI2MarkupExtensionRegistry extensionRegistry,
-                              OpenAPI schema, URI swaggerLocation, Labels labels) {
+            OpenAPI2MarkupExtensionRegistry extensionRegistry,
+            OpenAPI schema, URI swaggerLocation, Labels labels) {
             super(config, extensionRegistry, schema, swaggerLocation, labels);
             this.config = config;
             this.extensionRegistry = extensionRegistry;

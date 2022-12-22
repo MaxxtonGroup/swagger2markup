@@ -85,11 +85,11 @@ public class SchemaComponent extends MarkupComponent<StructuralNode, SchemaCompo
         }};
 
         Stream<String> schemaBooleanStream = schemasBooleanProperties.entrySet().stream()
-                .filter(e -> null != e.getValue() && e.getValue())
-                .map(e -> OpenApiHelpers.italicUnconstrained(e.getKey().toLowerCase()));
+            .filter(e -> null != e.getValue() && e.getValue())
+            .map(e -> OpenApiHelpers.italicUnconstrained(e.getKey().toLowerCase()));
         Stream<String> schemaValueStream = schemasValueProperties.entrySet().stream()
-                .filter(e -> null != e.getValue() && StringUtils.isNotBlank(e.getValue().toString()))
-                .map(e -> boldUnconstrained(e.getKey()) + ": " + e.getValue());
+            .filter(e -> null != e.getValue() && StringUtils.isNotBlank(e.getValue().toString()))
+            .map(e -> boldUnconstrained(e.getKey()) + ": " + e.getValue());
 
         ParagraphBlockImpl paragraphBlock = new ParagraphBlockImpl(schemaDocument);
         String source = Stream.concat(schemaBooleanStream, schemaValueStream).collect(Collectors.joining(" +" + LINE_SEPARATOR));

@@ -59,57 +59,52 @@ public class ComponentsDocument extends MarkupComponent<Document, ComponentsDocu
     private void appendComponentsSection(Document document, Components components) {
         if (null == components) return;
 
-        Section componentsSection = new SectionImpl(document);
-        componentsSection.setTitle(labels.getLabel(SECTION_TITLE_COMPONENTS));
-        String componentSectionId = "_components";
-        componentsSection.setId(componentSectionId);
+        Section definitionsSection = new SectionImpl(document);
+        definitionsSection.setTitle(labels.getLabel(SECTION_TITLE_DEFINTIONS));
+        String componentSectionId = "_definitions";
+        definitionsSection.setId(componentSectionId);
 
-        appendComponentsSchemasSection(componentsSection, componentSectionId, components.getSchemas());
+        appendComponentsSchemasSection(definitionsSection, componentSectionId, components.getSchemas());
         Map<String, Parameter> parameters = components.getParameters();
         if (null != parameters && !parameters.isEmpty()) {
-            appendSubSection(componentsSection, componentSectionId, parametersComponent, SECTION_TITLE_PARAMETERS,
-                    new ParametersComponent.Parameters(parameters));
+            appendSubSection(definitionsSection, componentSectionId, parametersComponent, SECTION_TITLE_PARAMETERS,
+                new ParametersComponent.Parameters(parameters));
         }
         Map<String, ApiResponse> responses = components.getResponses();
         if (null != responses && !responses.isEmpty()) {
-            appendSubSection(componentsSection, componentSectionId, responseComponent, SECTION_TITLE_RESPONSES,
-                    new ResponseComponent.Parameters(responses));
+            appendSubSection(definitionsSection, componentSectionId, responseComponent, SECTION_TITLE_RESPONSES,
+                new ResponseComponent.Parameters(responses));
         }
         Map<String, Header> headers = components.getHeaders();
         if (null != headers && !headers.isEmpty()) {
-            appendSubSection(componentsSection, componentSectionId, headersComponent, SECTION_TITLE_HEADERS,
-                    new HeadersComponent.Parameters(headers));
+            appendSubSection(definitionsSection, componentSectionId, headersComponent, SECTION_TITLE_HEADERS,
+                new HeadersComponent.Parameters(headers));
         }
         Map<String, Link> links = components.getLinks();
         if (null != links && !links.isEmpty()) {
-            appendSubSection(componentsSection, componentSectionId, linkComponent, SECTION_TITLE_LINKS,
-                    new LinkComponent.Parameters(links));
+            appendSubSection(definitionsSection, componentSectionId, linkComponent, SECTION_TITLE_LINKS,
+                new LinkComponent.Parameters(links));
         }
-        document.append(componentsSection);
+        document.append(definitionsSection);
     }
 
     private void appendComponentsSchemasSection(
-            Section componentsSection, String componentSectionId,
-            @SuppressWarnings("rawtypes") Map<String, Schema> schemas) {
+        Section componentsSection, String componentSectionId,
+        @SuppressWarnings("rawtypes") Map<String, Schema> schemas) {
         if (null == schemas || schemas.isEmpty()) return;
 
-        SectionImpl schemasSection = new SectionImpl(componentsSection);
-        String schemasSectionId = componentSectionId + "_schemas";
-        schemasSection.setTitle(labels.getLabel(SECTION_TITLE_SCHEMAS));
-        schemasSection.setId(schemasSectionId);
         schemas.forEach((name, schema) -> {
-            String schemaDocumentId = schemasSectionId + "_" + name;
-            Document schemaDocument = schemaComponent.apply(schemasSection, schema);
+            String schemaDocumentId = componentSectionId + "_" + name;
+            Document schemaDocument = schemaComponent.apply(componentsSection, schema);
             schemaDocument.setTitle(name);
             schemaDocument.setId(schemaDocumentId);
-            schemasSection.append(schemaDocument);
+            componentsSection.append(schemaDocument);
         });
-        componentsSection.append(schemasSection);
     }
 
     private <T> void appendSubSection(Section componentsSection, String componentSectionId,
-                                      MarkupComponent<StructuralNode, T, StructuralNode> markupComponent,
-                                      String sectionLabel, T parameters) {
+        MarkupComponent<StructuralNode, T, StructuralNode> markupComponent,
+        String sectionLabel, T parameters) {
         SectionImpl parametersSection = new SectionImpl(componentsSection);
         String parametersSectionId = componentSectionId + "_parameters";
         parametersSection.setTitle(labels.getLabel(sectionLabel));

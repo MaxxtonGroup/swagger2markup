@@ -31,27 +31,27 @@ public class AsciidocConverter extends StringConverter {
     private final Pattern tableColumnsStylePattern = Pattern.compile("((\\d+)\\*)?([<^>])?(\\.[<^>])?(\\d+)?([adehlmsv])?");
 
     private static final java.util.List<String> attributeToExclude = Arrays.asList(
-            "localtime",
-            "filetype",
-            "asciidoctor-version",
-            "doctime",
-            "localyear",
-            "docdate",
-            "localdate",
-            "localdatetime",
-            "docdatetime",
-            "backend",
-            "basebackend",
-            "doctitle",
-            "docyear"
+        "localtime",
+        "filetype",
+        "asciidoctor-version",
+        "doctime",
+        "localyear",
+        "docdate",
+        "localdate",
+        "localdatetime",
+        "docdatetime",
+        "backend",
+        "basebackend",
+        "doctitle",
+        "docyear"
     );
 
     private static final String[] supportedUrlSchemes = new String[]{
-            "http",
-            "https",
-            "ftp",
-            "irc",
-            "mailto"
+        "http",
+        "https",
+        "ftp",
+        "irc",
+        "mailto"
     };
 
     public AsciidocConverter(String backend, Map<String, Object> opts) {
@@ -94,6 +94,8 @@ public class AsciidocConverter extends StringConverter {
             case "listing":
                 return convertListing((Block) node);
             case "literal":
+                return convertLiteral((StructuralNode) node);
+            case "source,json":
                 return convertLiteral((StructuralNode) node);
             case "ulist":
                 return convertUList((List) node);
@@ -192,8 +194,8 @@ public class AsciidocConverter extends StringConverter {
             }
         } else if (authorCount > 1) {
             String authors = LongStream.rangeClosed(1, authorCount)
-                    .mapToObj(i -> getAuthorDetail(attributes, "author_" + i, "email_" + i))
-                    .collect(Collectors.joining("; "));
+                .mapToObj(i -> getAuthorDetail(attributes, "author_" + i, "email_" + i))
+                .collect(Collectors.joining("; "));
 
             if (StringUtils.isNotBlank(authors)) {
                 sb.append(authors).append(LINE_SEPARATOR);
@@ -210,8 +212,8 @@ public class AsciidocConverter extends StringConverter {
 
     private void appendRevisionDetails(StringBuilder sb, Map<String, Object> attributes) {
         String revDetails = Stream.of(attributes.get("revnumber"), attributes.get("revdate")).filter(Objects::nonNull)
-                .filter(o -> !o.toString().isEmpty()).map(Object::toString)
-                .collect(Collectors.joining(", "));
+            .filter(o -> !o.toString().isEmpty()).map(Object::toString)
+            .collect(Collectors.joining(", "));
 
         if (!revDetails.isEmpty()) {
             sb.append("v").append(revDetails).append(LINE_SEPARATOR);
@@ -295,7 +297,7 @@ public class AsciidocConverter extends StringConverter {
         } else {
             appendTitle(node, sb);
             sb.append(ATTRIBUTES_BEGIN).append(node.getStyle()).append(ATTRIBUTES_END)
-                    .append(LINE_SEPARATOR).append(DELIMITER_EXAMPLE).append(LINE_SEPARATOR);
+                .append(LINE_SEPARATOR).append(DELIMITER_EXAMPLE).append(LINE_SEPARATOR);
             appendChildBlocks(node, sb);
             sb.append(DELIMITER_EXAMPLE).append(LINE_SEPARATOR);
         }
@@ -337,7 +339,7 @@ public class AsciidocConverter extends StringConverter {
     private String convertFloatingTitle(StructuralNode node) {
         logger.debug("convertFloatingTitle");
         return ATTRIBUTES_BEGIN + "discrete" + ATTRIBUTES_END + LINE_SEPARATOR +
-                repeat(node.getLevel() + 1, TITLE) + ' ' + node.getTitle() + LINE_SEPARATOR;
+            repeat(node.getLevel() + 1, TITLE) + ' ' + node.getTitle() + LINE_SEPARATOR;
     }
 
     private String convertExample(Block node) {
@@ -587,10 +589,10 @@ public class AsciidocConverter extends StringConverter {
                 } catch (NumberFormatException ignored) {
                 }
                 TableCellStyle tableCellStyle = new TableCellStyle(
-                        TableCellHorizontalAlignment.fromString(matcher.group(3)),
-                        TableCellVerticalAlignment.fromString(matcher.group(4)),
-                        Style.fromString(matcher.group(6)),
-                        width
+                    TableCellHorizontalAlignment.fromString(matcher.group(3)),
+                    TableCellVerticalAlignment.fromString(matcher.group(4)),
+                    Style.fromString(matcher.group(6)),
+                    width
                 );
                 for (int i = 0; i < multiplier; i++) {
                     columnStyles.add(tableCellStyle);
@@ -653,8 +655,8 @@ public class AsciidocConverter extends StringConverter {
         StringBuilder sb = new StringBuilder();
         String delimiter = repeat(level + 1, MARKER_D_LIST_ITEM);
         String entryTerms = node.getTerms().stream()
-                .map(term -> Optional.ofNullable(term.getSource()).orElse(""))
-                .collect(Collectors.joining(delimiter + LINE_SEPARATOR, "", delimiter));
+            .map(term -> Optional.ofNullable(term.getSource()).orElse(""))
+            .collect(Collectors.joining(delimiter + LINE_SEPARATOR, "", delimiter));
         sb.append(entryTerms);
         ListItem description = node.getDescription();
         if (null != description) {
@@ -771,7 +773,7 @@ public class AsciidocConverter extends StringConverter {
     private String convertLiteral(StructuralNode node) {
         logger.debug("convertLiteral");
         return ATTRIBUTES_BEGIN + node.getContext() + ATTRIBUTES_END + LINE_SEPARATOR +
-                StringEscapeUtils.unescapeHtml4(node.getContent().toString()) + LINE_SEPARATOR;
+            StringEscapeUtils.unescapeHtml4(node.getContent().toString()) + LINE_SEPARATOR;
     }
 
     private String convertParagraph(StructuralNode node) {
@@ -789,7 +791,7 @@ public class AsciidocConverter extends StringConverter {
         StringBuilder sb = new StringBuilder();
         appendId(node, sb);
         sb.append(new DelimitedBlockNode(node).toAsciiDocContent()).append(StringUtils.repeat(TITLE, node.getLevel() + 1))
-                .append(" ").append(StringEscapeUtils.unescapeHtml4(node.getTitle())).append(LINE_SEPARATOR);
+            .append(" ").append(StringEscapeUtils.unescapeHtml4(node.getTitle())).append(LINE_SEPARATOR);
         appendChildBlocks(node, sb);
         appendTrailingNewLine(sb);
         return sb.toString();
@@ -874,7 +876,7 @@ public class AsciidocConverter extends StringConverter {
         java.util.List<String> roles = node.getRoles();
         if (!roles.isEmpty()) {
             sb.append(ATTRIBUTES_BEGIN).append(".").append(String.join(".", roles))
-                    .append(ATTRIBUTES_END).append(LINE_SEPARATOR);
+                .append(ATTRIBUTES_END).append(LINE_SEPARATOR);
         }
     }
 

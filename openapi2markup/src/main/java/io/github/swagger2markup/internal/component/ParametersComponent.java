@@ -16,9 +16,12 @@
 package io.github.swagger2markup.internal.component;
 
 import io.github.swagger2markup.OpenAPI2MarkupConverter;
+import io.github.swagger2markup.adoc.ast.impl.SectionImpl;
 import io.github.swagger2markup.adoc.ast.impl.TableImpl;
 import io.github.swagger2markup.extension.MarkupComponent;
 import io.swagger.v3.oas.models.parameters.Parameter;
+
+import org.apache.commons.lang3.StringUtils;
 import org.asciidoctor.ast.Document;
 import org.asciidoctor.ast.StructuralNode;
 import org.asciidoctor.ast.Table;
@@ -63,32 +66,35 @@ public class ParametersComponent extends MarkupComponent<StructuralNode, Paramet
         Map<String, Parameter> parameters = componentParameters.parameters;
         if (null == parameters || parameters.isEmpty()) return parent;
 
+        SectionImpl parameterSection = new SectionImpl(parent);
+        parameterSection.setTitle(labels.getLabel(TABLE_TITLE_PARAMETERS));
+
         TableImpl pathParametersTable = new TableImpl(parent, new HashMap<>(), new ArrayList<>());
         pathParametersTable.setOption("header");
         pathParametersTable.setAttribute("caption", "", true);
         pathParametersTable.setAttribute("cols", ".^2a,.^3a,.^10a,.^5a", true);
-        pathParametersTable.setTitle(labels.getLabel(TABLE_TITLE_PARAMETERS));
         pathParametersTable.setHeaderRow(
-                labels.getLabel(TABLE_HEADER_TYPE),
-                labels.getLabel(TABLE_HEADER_NAME),
-                labels.getLabel(TABLE_HEADER_DESCRIPTION),
-                labels.getLabel(TABLE_HEADER_SCHEMA));
+            labels.getLabel(TABLE_HEADER_TYPE),
+            labels.getLabel(TABLE_HEADER_NAME),
+            labels.getLabel(TABLE_HEADER_DESCRIPTION),
+            labels.getLabel(TABLE_HEADER_SCHEMA));
 
         parameters.forEach((alt, parameter) ->
-                pathParametersTable.addRow(
-                        generateInnerDoc(pathParametersTable, boldUnconstrained(parameter.getIn()), alt),
-                        getParameterNameDocument(pathParametersTable, parameter),
-                        generateInnerDoc(pathParametersTable, Optional.ofNullable(parameter.getDescription()).orElse("")),
-                        generateInnerDoc(pathParametersTable, getSchemaTypeAsString(parameter.getSchema()))
-                ));
-        parent.append(pathParametersTable);
+            pathParametersTable.addRow(
+                generateInnerDoc(pathParametersTable, boldUnconstrained(StringUtils.capitalize(parameter.getIn())), alt),
+                getParameterNameDocument(pathParametersTable, parameter),
+                generateInnerDoc(pathParametersTable, Optional.ofNullable(parameter.getDescription()).orElse("")),
+                generateInnerDoc(pathParametersTable, parameter.getSchema() != null ? getSchemaTypeAsString(parameter.getSchema()) : "")
+            ));
+        parameterSection.append(pathParametersTable);
+        parent.append(parameterSection);
 
         return parent;
     }
 
     private Document getParameterNameDocument(Table table, Parameter parameter) {
         String documentContent = boldUnconstrained(parameter.getName()) + " +" + LINE_SEPARATOR + requiredIndicator(parameter.getRequired(),
-                labels.getLabel(LABEL_REQUIRED), labels.getLabel(LABEL_OPTIONAL));
+            labels.getLabel(LABEL_REQUIRED), labels.getLabel(LABEL_OPTIONAL));
         return generateInnerDoc(table, documentContent);
     }
 

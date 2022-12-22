@@ -39,8 +39,10 @@ public class OpenAPILabels extends Labels {
     public static final String LABEL_UNIQUE_ITEMS = "label_unique_items";
     public static final String LABEL_WRITE_ONLY = "label_write_only";
     public static final String SECTION_TITLE_COMPONENTS = "section_title_components";
+    public static final String SECTION_TITLE_DEFINTIONS = "section_title_definitions";
     public static final String SECTION_TITLE_PARAMETERS = "section_title_parameters";
     public static final String SECTION_TITLE_PATHS = "section_title_paths";
+    public static final String SECTION_TITLE_RESOURCES = "section_title_resources";
     public static final String SECTION_TITLE_SCHEMAS = "section_title_schemas";
     public static final String SECTION_TITLE_SECURITY = "section_title_security";
     public static final String SECTION_TITLE_SERVERS = "section_title_servers";

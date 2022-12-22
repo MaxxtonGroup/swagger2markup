@@ -20,6 +20,7 @@ import org.asciidoctor.ast.Document;
 import org.asciidoctor.ast.Section;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -45,28 +46,26 @@ public class OverviewDocument extends MarkupComponent<Document, OverviewDocument
     @Override
     public Document apply(Document document, Parameters parameters) {
         Info apiInfo = parameters.openAPI.getInfo();
-        document.setAttribute("openapi", parameters.openAPI.getOpenapi(), true);
         addDocumentTitle(document, apiInfo);
-        addAuthorInfo(document, apiInfo);
-        addVersionInfo(document, apiInfo);
 
         applyOverviewDocumentExtension(new Context(OverviewDocumentExtension.Position.DOCUMENT_BEFORE, document));
         Document subDocument = new DocumentImpl(document);
         Section overviewDoc = new SectionImpl(subDocument, "section", new HashMap<>(), new ArrayList<>(),
-                null, new ArrayList<>(), 1, "", new ArrayList<>(),
-                null, null, "", "", false, false);
+            null, new ArrayList<>(), 1, "", new ArrayList<>(),
+            null, null, "", "", false, false);
         applyOverviewDocumentExtension(new Context(OverviewDocumentExtension.Position.DOCUMENT_BEGIN, subDocument));
         overviewDoc.setTitle(labels.getLabel(SECTION_TITLE_OVERVIEW));
 
         appendDescription(overviewDoc, apiInfo.getDescription());
-        appendTermsOfServiceInfo(overviewDoc, apiInfo);
-        appendLicenseInfo(overviewDoc, apiInfo);
+        addVersionInfo(overviewDoc, apiInfo);
+        addContactInfo(overviewDoc, apiInfo);
+        addURIScheme(overviewDoc, apiInfo);
         subDocument.append(overviewDoc);
+        tagsComponent.apply(subDocument, parameters.openAPI.getTags());
         applyOverviewDocumentExtension(new Context(OverviewDocumentExtension.Position.DOCUMENT_END, subDocument));
         document.append(subDocument);
 
         externalDocumentationComponent.apply(document, parameters.openAPI.getExternalDocs());
-        tagsComponent.apply(document, parameters.openAPI.getTags());
         applyOverviewDocumentExtension(new Context(OverviewDocumentExtension.Position.DOCUMENT_AFTER, document));
         return document;
     }
@@ -82,10 +81,49 @@ public class OverviewDocument extends MarkupComponent<Document, OverviewDocument
         }
     }
 
-    private void addVersionInfo(Document rootDocument, Info info) {
+    private void addVersionInfo(Section overviewDoc, Info info) {
         String version = info.getVersion();
         if (StringUtils.isNotBlank(version)) {
-            rootDocument.setAttribute("revnumber", version, true);
+            Section versionDoc = new SectionImpl(overviewDoc, "section", new HashMap<>(), new ArrayList<>(),
+                null, new ArrayList<>(), 2, "", new ArrayList<>(),
+                null, null, "", "", false, false);
+            versionDoc.setTitle("Version information");
+            Block paragraph = new ParagraphBlockImpl(versionDoc);
+            paragraph.setSource("Version :" + version);
+            versionDoc.append(paragraph);
+            overviewDoc.append(versionDoc);
+        }
+    }
+
+    private void addContactInfo(Section overviewDoc, Info info) {
+        Contact contact = info.getContact();
+        if (StringUtils.isNotBlank(contact.getName()) && StringUtils.isNotBlank(contact.getEmail())) {
+            Section contactDoc = new SectionImpl(overviewDoc, "section", new HashMap<>(), new ArrayList<>(),
+                null, new ArrayList<>(), 2, "", new ArrayList<>(),
+                null, null, "", "", false, false);
+            contactDoc.setTitle("Contact information");
+            Block paragraph = new ParagraphBlockImpl(contactDoc);
+            paragraph.setLines(Arrays.asList("Contact : " + contact.getName(), "Contact Email : " + contact.getEmail()));
+            contactDoc.append(paragraph);
+            overviewDoc.append(contactDoc);
+        }
+    }
+
+    private void addURIScheme(Section overviewDoc, Info info) {
+        Contact contact = info.getContact();
+        if (StringUtils.isNotBlank(contact.getName()) && StringUtils.isNotBlank(contact.getEmail())) {
+            Section schemaDoc = new SectionImpl(overviewDoc, "section", new HashMap<>(), new ArrayList<>(),
+                null, new ArrayList<>(), 2, "", new ArrayList<>(),
+                null, null, "", "", false, false);
+            schemaDoc.setTitle("URI scheme");
+            Block paragraph = new ParagraphBlockImpl(schemaDoc);
+            paragraph.setLines(Arrays.asList(
+                "Host : " + "Test: https://api-test.maxxton.net , Production: https://api.maxxton.net",
+                "BasePath : " + "/maxxton/v1",
+                "Schemes : " + "HTTPS"
+            ));
+            schemaDoc.append(paragraph);
+            overviewDoc.append(schemaDoc);
         }
     }
 

@@ -16,17 +16,14 @@
 package io.github.swagger2markup.internal.component;
 
 import io.github.swagger2markup.OpenAPI2MarkupConverter;
-import io.github.swagger2markup.adoc.ast.impl.DescriptionListEntryImpl;
-import io.github.swagger2markup.adoc.ast.impl.DescriptionListImpl;
+import io.github.swagger2markup.adoc.ast.impl.ListImpl;
 import io.github.swagger2markup.adoc.ast.impl.ListItemImpl;
 import io.github.swagger2markup.adoc.ast.impl.SectionImpl;
 import io.github.swagger2markup.extension.MarkupComponent;
 import io.swagger.v3.oas.models.tags.Tag;
-import org.apache.commons.lang3.StringUtils;
 import org.asciidoctor.ast.Document;
 import org.asciidoctor.ast.Section;
 
-import java.util.Collections;
 import java.util.List;
 
 import static io.github.swagger2markup.config.OpenAPILabels.SECTION_TITLE_TAGS;
@@ -57,17 +54,10 @@ public class TagsComponent extends MarkupComponent<Document, TagsComponent.Param
         Section tagsSection = new SectionImpl(document);
         tagsSection.setTitle(labels.getLabel(SECTION_TITLE_TAGS));
 
-        DescriptionListImpl tagsList = new DescriptionListImpl(tagsSection);
+        ListImpl tagsList = new ListImpl(tagsSection, "ulist");
         openAPITags.forEach(tag -> {
-            DescriptionListEntryImpl tagEntry = new DescriptionListEntryImpl(tagsList, Collections.singletonList(new ListItemImpl(tagsList, tag.getName())));
-            String description = tag.getDescription();
-            if(StringUtils.isNotBlank(description)){
-                ListItemImpl tagDesc = new ListItemImpl(tagEntry, "");
-                tagDesc.setSource(description);
-                externalDocumentationComponent.apply(tagDesc, tag.getExternalDocs());
-                tagEntry.setDescription(tagDesc);
-            }
-            tagsList.addEntry(tagEntry);
+            ListItemImpl tagEntry = new ListItemImpl(tagsSection, tag.getName() + " : " + tag.getDescription());
+            tagsList.append(tagEntry);
         });
 
         tagsSection.append(tagsList);
