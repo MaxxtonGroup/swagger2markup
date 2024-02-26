@@ -183,7 +183,7 @@ public class PathsDocument extends MarkupComponent<Document, PathsDocument.Param
 
         node.append(exampleRequestSection);
     }
-
+    
     private void appendExampleResponse(StructuralNode node, Components components, ApiResponses responses) {
         SectionImpl exampleRequestSection = new SectionImpl(node);
         exampleRequestSection.setTitle("Example HTTP response");
@@ -197,31 +197,30 @@ public class PathsDocument extends MarkupComponent<Document, PathsDocument.Param
             Content content = apiResponse.getValue().getContent();
             if (content != null) {
                 Optional<Schema> optionalSchema = apiResponse.getValue().getContent().values().stream().map(MediaType::getSchema).findFirst();
-                    if (ArraySchema.class.isAssignableFrom(schema.getClass())) {
-                        ArraySchema arraySchema = (ArraySchema) schema;
-                        if (!isEmpty(arraySchema.getItems().get$ref())) {
-                            Schema component = components.getSchemas().get(arraySchema.getItems().get$ref().substring(arraySchema.getItems().get$ref().lastIndexOf("/") + 1));
-                            if (component != null) {
-                                SectionImpl responseBodySection = new SectionImpl(exampleRequestSection);
-                                responseBodySection.setTitle("Response " + apiResponse.getKey());
-                                appendArrayCodeBlock(responseBodySection, components, component);
-                                exampleRequestSection.append(responseBodySection);
-                            }
-                        }
-                    }
-                    else if (!isEmpty(schema.get$ref())) {
-                        Schema component = components.getSchemas().get(schema.get$ref().substring(schema.get$ref().lastIndexOf("/") + 1));
+                Schema schema = optionalSchema.get();
+                if (ArraySchema.class.isAssignableFrom(schema.getClass())) {
+                    ArraySchema arraySchema = (ArraySchema) schema;
+                    if (!isEmpty(arraySchema.getItems().get$ref())) {
+                        Schema component = components.getSchemas().get(arraySchema.getItems().get$ref().substring(arraySchema.getItems().get$ref().lastIndexOf("/") + 1));
                         if (component != null) {
                             SectionImpl responseBodySection = new SectionImpl(exampleRequestSection);
                             responseBodySection.setTitle("Response " + apiResponse.getKey());
-                            appendCodeBlock(responseBodySection, components, component);
+                            appendArrayCodeBlock(responseBodySection, components, component);
                             exampleRequestSection.append(responseBodySection);
                         }
                     }
                 }
+                else if (!isEmpty(schema.get$ref())) {
+                    Schema component = components.getSchemas().get(schema.get$ref().substring(schema.get$ref().lastIndexOf("/") + 1));
+                    if (component != null) {
+                        SectionImpl responseBodySection = new SectionImpl(exampleRequestSection);
+                        responseBodySection.setTitle("Response " + apiResponse.getKey());
+                        appendCodeBlock(responseBodySection, components, component);
+                        exampleRequestSection.append(responseBodySection);
+                    }
+                }
             }
         }
-
         node.append(exampleRequestSection);
     }
 
