@@ -197,9 +197,19 @@ public class PathsDocument extends MarkupComponent<Document, PathsDocument.Param
             Content content = apiResponse.getValue().getContent();
             if (content != null) {
                 Optional<Schema> optionalSchema = apiResponse.getValue().getContent().values().stream().map(MediaType::getSchema).findFirst();
-                if (optionalSchema.isPresent()) {
-                    Schema schema = optionalSchema.get();
-                    if (!isEmpty(schema.get$ref())) {
+                    if (ArraySchema.class.isAssignableFrom(schema.getClass())) {
+                        ArraySchema arraySchema = (ArraySchema) schema;
+                        if (!isEmpty(arraySchema.getItems().get$ref())) {
+                            Schema component = components.getSchemas().get(arraySchema.getItems().get$ref().substring(arraySchema.getItems().get$ref().lastIndexOf("/") + 1));
+                            if (component != null) {
+                                SectionImpl responseBodySection = new SectionImpl(exampleRequestSection);
+                                responseBodySection.setTitle("Response " + apiResponse.getKey());
+                                appendArrayCodeBlock(responseBodySection, components, component);
+                                exampleRequestSection.append(responseBodySection);
+                            }
+                        }
+                    }
+                    else if (!isEmpty(schema.get$ref())) {
                         Schema component = components.getSchemas().get(schema.get$ref().substring(schema.get$ref().lastIndexOf("/") + 1));
                         if (component != null) {
                             SectionImpl responseBodySection = new SectionImpl(exampleRequestSection);
@@ -219,6 +229,17 @@ public class PathsDocument extends MarkupComponent<Document, PathsDocument.Param
         BlockImpl codeBlock = null;
         try {
             codeBlock = new BlockImpl(node, "source,json", new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(generateJsonObject(0, components, schema)));
+        }
+        catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        node.append(codeBlock);
+    }
+
+    private void appendArrayCodeBlock(StructuralNode node, Components components, Schema schema) {
+        BlockImpl codeBlock = null;
+        try {
+            codeBlock = new BlockImpl(node, "source,json", new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(List.of(generateJsonObject(1, components, schema))));
         }
         catch (JsonProcessingException e) {
             e.printStackTrace();
