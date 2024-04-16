@@ -169,7 +169,19 @@ public class PathsDocument extends MarkupComponent<Document, PathsDocument.Param
             Optional<Schema> optionalSchema = requestBody.getContent().values().stream().map(MediaType::getSchema).findFirst();
             if (optionalSchema.isPresent()) {
                 Schema schema = optionalSchema.get();
-                if (!isEmpty(schema.get$ref())) {
+                 if (ArraySchema.class.isAssignableFrom(schema.getClass())) {
+                    ArraySchema arraySchema = (ArraySchema) schema;
+                    if (!isEmpty(arraySchema.getItems().get$ref())) {
+                        Schema component = components.getSchemas().get(arraySchema.getItems().get$ref().substring(arraySchema.getItems().get$ref().lastIndexOf("/") + 1));
+                        if (component != null) {
+                            SectionImpl requestBodySection = new SectionImpl(exampleRequestSection);
+                            requestBodySection.setTitle("Request body");
+                            appendArrayCodeBlock(requestBodySection, components, component);
+                            exampleRequestSection.append(requestBodySection);
+                        }
+                    }
+                }
+                else if (!isEmpty(schema.get$ref())) {
                     Schema component = components.getSchemas().get(schema.get$ref().substring(schema.get$ref().lastIndexOf("/") + 1));
                     if (component != null) {
                         SectionImpl requestBodySection = new SectionImpl(exampleRequestSection);
