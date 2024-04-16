@@ -61,7 +61,7 @@ public class ComponentsDocument extends MarkupComponent<Document, ComponentsDocu
 
         Section definitionsSection = new SectionImpl(document);
         definitionsSection.setTitle(labels.getLabel(SECTION_TITLE_DEFINTIONS));
-        String componentSectionId = "_definitions";
+        String componentSectionId = "_components_schemas";
         definitionsSection.setId(componentSectionId);
 
         appendComponentsSchemasSection(definitionsSection, componentSectionId, components.getSchemas());
