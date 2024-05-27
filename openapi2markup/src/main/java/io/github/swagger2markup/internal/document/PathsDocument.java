@@ -306,6 +306,9 @@ public class PathsDocument extends MarkupComponent<Document, PathsDocument.Param
         else if (BooleanSchema.class.isAssignableFrom(property.getClass())) {
             object.put(line, true);
         }
+        else if(ArraySchema.class.isAssignableFrom(property.getClass())){
+            object.put(line, Collections.singletonList(((ArraySchema) property).getItems().getType()));
+        }
     }
 
     private void appendOperation(StructuralNode node, HttpMethod method, String url) {
